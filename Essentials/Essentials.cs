@@ -301,7 +301,7 @@ namespace Essentials
             BuffList.Add("brokenarmor", 36);
             //BuffList.Add("?", 37); // Not set to anything.
             //BuffList.Add("?", 38); // Not set to anything.
-            BuffList.Add("cursed", 39);
+            BuffList.Add("cursedinferno", 39);
             BuffList.Add("petbunny", 40);
             // WARNING: ID's 41 and above will cause crash (they don't exist).
         }
