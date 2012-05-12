@@ -31,6 +31,7 @@ namespace Essentials
         public string KitFile { get; set; }
         public string WarpFile { get; set; }
         public GodMode God { get; set; }
+        private static Dictionary<String, Int32> BuffList; // Lazily loaded (instead of setup once every time Buff command is called)
 
 		public Essentials()
 		{
@@ -38,7 +39,7 @@ namespace Essentials
 			Description = "Essential commands for TDSM.";
 			Author = "Luke";
 			Version = "0.7";
-			TDSMBuild = 37;
+			TDSMBuild = 38;
 		}
 
         protected override void Initialized(object state)
@@ -53,6 +54,8 @@ namespace Essentials
             essentialsPlayerList = new Dictionary<Int32, Boolean>();
             essentialsRPGPlayerList = new Dictionary<Int32, Boolean>();
 			SpawnPositions = new Dictionary<String, Vector2>();
+            BuffList = new Dictionary<String, Int32>();
+            SetBuffList();
 
             if (!Directory.Exists(pluginFolder))
                 CreateDirectory(pluginFolder); //Touch Directory, We need this.
@@ -149,6 +152,7 @@ namespace Essentials
                 .WithDescription("Kill all NPC's within a radius")
                 .WithHelpText("Usage:    butcher <radius>")
                 .WithHelpText("          butcher <radius> -g[uide]")
+                .WithHelpText("          butcher <radius> <npc-name>")
                 .Calls(Commands.Butcher)
                 .WithPermissionNode("essentials.butcher");
 
@@ -184,6 +188,9 @@ namespace Essentials
 
             AddCommand("warp")
                 .WithAccessLevel(AccessLevel.PLAYER)
+                .WithHelpText("Usage:    warp <warp-name>")
+                .WithHelpText("          setwarp <warp-name>")
+                .WithHelpText("          warplist")
                 .Calls(Commands.Warp)
                 .WithPermissionNode("essentials.warp");
 
@@ -201,6 +208,12 @@ namespace Essentials
                 .WithAccessLevel(AccessLevel.PLAYER)
                 .Calls(Commands.ListWarp)
                 .WithPermissionNode("essentials.warplist");
+
+            AddCommand("buff")
+                .WithAccessLevel(AccessLevel.OP)
+                .WithHelpText("Usage:    buff <OPTIONAL-playername> <itemname> <length>")
+                .Calls(Commands.Buff)
+                .WithPermissionNode("essentials.buff");
 
 			Hook(HookPoints.PlayerEnteredGame, OnPlayerEnterGame);
 			Hook(HookPoints.UnkownSendPacket, Net.OnUnkownPacketSend);
@@ -236,6 +249,61 @@ namespace Essentials
         public static void Log(string message, params object[] args)
         {
             Log(String.Format(message, args));
+        }
+
+        public static int GetBuffID(string itemName)
+        {
+            int buffID;
+            if (BuffList.TryGetValue(itemName.ToLower(), out buffID))
+            {
+                return buffID;
+            }
+            return -1;
+        }
+
+        private void SetBuffList() // Uses item name when possible, otherwise uses buff name
+        {
+            BuffList.Add("obsidianskinpotion", 1);
+            BuffList.Add("regenerationpotion", 2);
+            BuffList.Add("swiftnesspotion", 3);
+            BuffList.Add("gillspotion", 4);
+            BuffList.Add("ironskinpotion", 5);
+            BuffList.Add("manaregenerationpotion", 6);
+            BuffList.Add("magicpowerpotion", 7);
+            BuffList.Add("featherfallpotion", 8);
+            BuffList.Add("spelunkerpotion", 9);
+            BuffList.Add("invisibilitypotion", 10);
+            BuffList.Add("shinepotion", 11);
+            BuffList.Add("nightowlpotion", 12);
+            BuffList.Add("battlepotion", 13);
+            BuffList.Add("thornspotion", 14);
+            BuffList.Add("waterwalkingpotion", 15);
+            BuffList.Add("archerypotion", 16);
+            BuffList.Add("hunterpotion", 17);
+            BuffList.Add("gravitationpotion", 18);
+            BuffList.Add("orboflight", 19);
+            BuffList.Add("poisoned", 20);
+            BuffList.Add("potionsickness", 21);
+            BuffList.Add("darkness", 22);
+            BuffList.Add("cursed", 23);
+            BuffList.Add("onfire", 24);
+            BuffList.Add("ale", 25);
+            BuffList.Add("bowlofsoup", 26);
+            BuffList.Add("fairybell", 27);
+            //BuffList.Add("?", 28); // Not set to anything.
+            BuffList.Add("crystalball", 29);
+            BuffList.Add("bleeding", 30);
+            BuffList.Add("confused", 31);
+            BuffList.Add("slow", 32);
+            BuffList.Add("weak", 33);
+            BuffList.Add("merfolk", 34);
+            BuffList.Add("silenced", 35);
+            BuffList.Add("brokenarmor", 36);
+            //BuffList.Add("?", 37); // Not set to anything.
+            //BuffList.Add("?", 38); // Not set to anything.
+            BuffList.Add("cursed", 39);
+            BuffList.Add("petbunny", 40);
+            // WARNING: ID's 41 and above will cause crash (they don't exist).
         }
 
 #region Hooks

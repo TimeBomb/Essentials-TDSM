@@ -246,8 +246,8 @@ namespace Essentials
         {
             var player = args.GetOnlinePlayer(0);
 
-            NetMessage.SendData(26, -1, -1, " of unknown causes...", player.whoAmi, 0, (float)9999, (float)0);
-            sender.sendMessage("OMG! You killed " + player.Name + "!", 255, 0f, 255f, 255f);
+            NetMessage.SendData(26, -1, -1, " died of unknown causes...", player.whoAmi, 0, (float)9999, (float)0);
+            sender.sendMessage("You killed " + player.Name + "!", 255, 0f, 255f, 255f);
             Essentials.Log("Player " + player + " used /slay on " + player.Name);          
         }
 
@@ -267,9 +267,17 @@ namespace Essentials
         {
             if (sender is Player)
             {
+                if (args.Count > 0 && args[0].ToLower().Equals("help"))
+                    throw new CommandError("");
+
                 Player player = (Player)sender;
 
                 Boolean KillGuide = (args.Count > 1 && args[1].Trim().Length > 0 && args[1].Trim().ToLower().Equals("-g")); //Burr
+                string NPCName = "";
+                if (args.Count > 1 && args[1].Trim().Length > 0 && !KillGuide)
+                {
+                    NPCName = args[1].ToLower();
+                }
 
                 int Radius = 7;
                 if (args.Count > 0 && args[0] != null && args[0].Trim().Length > 0)
@@ -289,6 +297,9 @@ namespace Essentials
                 for (int i = 0; i < Main.npcs.Length - 1; i++)
                 {
                     NPC npc = Main.npcs[i];
+                    if (!String.IsNullOrEmpty(NPCName) && !npc.Name.ToLower().Replace(" ", "").Equals(NPCName))
+                        continue;
+
                     int NPC_X = (int)npc.Position.X / 16;
                     int NPC_Y = (int)npc.Position.Y / 16;
                     int Player_X = (int)player.Position.X / 16;
@@ -359,7 +370,7 @@ namespace Essentials
             }
             //Error message
             else
-                player.sendMessage("Error: You did not specify a kit! Do /kit help!");      
+                player.sendMessage("Error: You did not specify a kit! Do /kit help!");
         }
 
         public static void GodMode(ISender sender, ArgumentList args)
@@ -611,6 +622,57 @@ namespace Essentials
                     sender.Message("<PRIVATE>");
                 }
             }
+        }
+
+        public static void Buff(ISender sender, ArgumentList args)
+        {
+            Player target;
+			int type;
+			int length;
+            int maxBuffs = 40;
+
+			if (args.Count == 2)
+			{
+				target = sender as Player;
+				try
+				{
+                    type = Essentials.GetBuffID(args[0]);
+					length = (Int32.Parse(args[1])) * 60;
+					if (type >= 0 && type <= maxBuffs && length >=0)
+					{
+						target.AddBuff(type,length,false);
+						NetMessage.SendData (55, target.whoAmi, -1, "", target.whoAmi, type, length, 0f, 0);
+                        Server.notifyOps("Buffed " + target.Name + " with " + args[0] + " for " + args[1] + " second(s).", true);
+					}
+					else sender.sendMessage ("Invalid parameters specified. Maybe the item name was not found?");
+				}
+				catch
+				{
+					throw new CommandError("Command error.");
+				}
+			}
+            else if (args.Count == 3)
+            {
+                target = Server.GetPlayerByName(args[0].Trim());
+                try
+                {
+                    type = Essentials.GetBuffID(args[1]);
+                    length = (Int32.Parse(args[2])) * 60;
+                    if (type >= 0 && type <= maxBuffs && length >= 0)
+                    {
+                        target.AddBuff(type, length, false);
+                        NetMessage.SendData(55, target.whoAmi, -1, "", target.whoAmi, type, length, 0f, 0);
+                        Server.notifyOps("Buffed " + target.Name + " with " + args[1] + " for " + args[2] + " second(s).", true);
+                    }
+                    else sender.sendMessage("Invalid parameters specified. Maybe the item name was not found?");
+                }
+                catch
+                {
+                    throw new CommandError("Command error.");
+                }
+            }
+            else 
+                throw new CommandError("No parameters specified.");
         }
     }
 }
